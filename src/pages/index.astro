@@ -1,11 +1,37 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero';
+import FeatureSection from '../components/FeatureSection';
+import HowItWorks from '../components/HowItWorks';
+import CTASection from '../components/CTASection';
+import Footer from '../components/Footer';
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout title="PulmoAI | Modern TBC Detection">
+  <nav class="absolute top-0 w-full z-50 py-6 px-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+          <span class="text-white font-bold text-sm">PA</span>
+        </div>
+        <span class="font-bold text-xl tracking-tight text-slate-900">PulmoAI</span>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <a href="#" class="hidden md:block text-sm font-medium text-slate-600 hover:text-slate-900">Log in</a>
+        <button class="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+          Get Started
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <Hero />
+    <FeatureSection />
+    <HowItWorks />
+    <CTASection />
+  </main>
+
+  <Footer />
+</BaseLayout>
