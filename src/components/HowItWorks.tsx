@@ -1,40 +1,25 @@
-// src/components/HowItWorks.jsx
 const steps = [
-  {
-    number: "01",
-    title: "Upload X-ray",
-    desc: "Securely upload your chest X-ray image in standard formats directly through our web interface."
-  },
-  {
-    number: "02",
-    title: "AI Processing",
-    desc: "Our proprietary neural network analyzes the image for distinct radiological features associated with TBC."
-  },
-  {
-    number: "03",
-    title: "Instant Results",
-    desc: "Receive a detailed report with probability scores and explainable heatmaps in seconds."
-  }
+  ['01', 'Authenticate', 'Login or register a staff account before entering the workstation.'],
+  ['02', 'Upload', 'Select a chest X-ray image from the radiology workflow.'],
+  ['03', 'Review', 'Read the AI output and keep professional clinical judgement in the loop.'],
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-16 items-center">
-          <div className="lg:w-1/3">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">How PulmoAI Works</h2>
-            <p className="text-slate-500 text-lg leading-relaxed mb-8">
-              A streamlined workflow designed to deliver rapid insights without complex configurations. Upload, process, and analyze in three simple steps.
-            </p>
+    <section className="border-y border-slate-200 bg-white px-4 py-12">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Workflow</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Screening in three steps</h2>
           </div>
-          
-          <div className="lg:w-2/3 grid sm:grid-cols-3 gap-8">
-            {steps.map((step, i) => (
-              <div key={i} className="relative">
-                <div className="text-5xl font-bold text-slate-100 mb-4 tracking-tighter">{step.number}</div>
-                <h4 className="text-xl font-semibold text-slate-900 mb-3 relative z-10">{step.title}</h4>
-                <p className="text-slate-500 leading-relaxed relative z-10">{step.desc}</p>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {steps.map(([number, title, desc]) => (
+              <div key={number} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-cyan-700">{number}</p>
+                <h3 className="mt-3 text-base font-semibold text-slate-950">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{desc}</p>
               </div>
             ))}
           </div>

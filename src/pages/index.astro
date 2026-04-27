@@ -8,20 +8,23 @@ import Footer from '../components/Footer';
 import UploadCard from '../components/UploadCard';
 ---
 
-<BaseLayout title="PulmoAI | Modern TBC Detection">
-  <nav class="absolute top-0 w-full z-50 py-6 px-6">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
+<BaseLayout title="PulmoAI | Hospital TBC Workstation">
+  <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+        <div class="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-700 shadow-sm">
           <span class="text-white font-bold text-sm">PA</span>
         </div>
-        <span class="font-bold text-xl tracking-tight text-slate-900">PulmoAI</span>
+        <div>
+          <span class="block text-lg font-semibold tracking-tight text-slate-950">PulmoAI</span>
+          <span class="hidden text-xs font-medium text-slate-500 sm:block">Internal Hospital System</span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-6">
-        <button onclick="window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'login' } }))" class="hidden md:block text-sm font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Log in</button>
-        <button onclick="window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'register' } }))" class="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
-          Get Started
+      <div class="flex items-center gap-3">
+        <button onclick="window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'login' } }))" class="hidden rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-950 md:block">Login</button>
+        <button onclick="window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'register' } }))" class="rounded-md bg-cyan-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-cyan-800">
+          Register
         </button>
       </div>
     </div>
@@ -32,7 +35,7 @@ import UploadCard from '../components/UploadCard';
     <FeatureSection />
     <HowItWorks />
     
-    <div id="demo" class="py-24 bg-slate-50">
+    <div id="demo" class="border-y border-slate-200 bg-slate-100 px-4 py-12">
       <UploadCard client:only="react" />
     </div>
     
