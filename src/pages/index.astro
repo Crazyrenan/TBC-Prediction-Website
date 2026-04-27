@@ -19,10 +19,10 @@ import UploadCard from '../components/UploadCard';
       </div>
 
       <div class="flex items-center gap-6">
-        <a href="#demo" class="hidden md:block text-sm font-medium text-slate-600 hover:text-slate-900">Log in</a>
-        <a href="#demo" class="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+        <button onclick="window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'login' } }))" class="hidden md:block text-sm font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Log in</button>
+        <button onclick="window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'register' } }))" class="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
           Get Started
-        </a>
+        </button>
       </div>
     </div>
   </nav>

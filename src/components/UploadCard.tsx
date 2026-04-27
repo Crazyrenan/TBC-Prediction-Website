@@ -3,6 +3,7 @@ import PredictionResult from './PredictionResult';
 
 export default function UploadCard() {
   const [token, setToken] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +18,14 @@ export default function UploadCard() {
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     if (storedToken) setToken(storedToken);
+
+    const handleAuthToggle = (e: any) => {
+      setIsLogin(e.detail.mode === 'login');
+      setShowModal(true);
+    };
+
+    window.addEventListener('toggle-auth', handleAuthToggle);
+    return () => window.removeEventListener('toggle-auth', handleAuthToggle);
   }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -37,6 +46,7 @@ export default function UploadCard() {
       if (isLogin) {
         localStorage.setItem("token", data.access_token);
         setToken(data.access_token);
+        setShowModal(false);
       } else {
         setIsLogin(true);
         setAuthError("Registrasi berhasil. Silakan login.");
@@ -81,21 +91,35 @@ export default function UploadCard() {
     }
   };
 
-  if (!token) {
-    return (
-      <div className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg border border-slate-200">
-        <h2 className="text-xl font-bold mb-4">{isLogin ? "Login" : "Register"}</h2>
+  const AuthModal = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-2xl relative">
+        <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-2xl font-bold">&times;</button>
+        <h2 className="text-2xl font-bold mb-6 text-slate-900">{isLogin ? "Login" : "Register"}</h2>
         <form onSubmit={handleAuth} className="space-y-4">
-          <input type="text" placeholder="Username" className="w-full p-2 border rounded" onChange={e => setUsername(e.target.value)} />
-          <input type="password" placeholder="Password" className="w-full p-2 border rounded" onChange={e => setPassword(e.target.value)} />
-          {authError && <p className="text-red-500 text-sm">{authError}</p>}
-          <button type="submit" className="w-full bg-slate-900 text-white py-2 rounded font-bold">
-            {isLogin ? "Masuk" : "Daftar"}
+          <input type="text" placeholder="Username" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-slate-900 outline-none" onChange={e => setUsername(e.target.value)} />
+          <input type="password" placeholder="Password" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-slate-900 outline-none" onChange={e => setPassword(e.target.value)} />
+          {authError && <p className="text-red-500 text-sm font-medium">{authError}</p>}
+          <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition">
+            {isLogin ? "Masuk ke Sistem" : "Daftar Akun"}
           </button>
         </form>
-        <button onClick={() => setIsLogin(!isLogin)} className="w-full mt-4 text-sm text-blue-600">
-          {isLogin ? "Buat akun" : "Sudah punya akun? Login"}
+        <button onClick={() => { setIsLogin(!isLogin); setAuthError(""); }} className="w-full mt-4 text-sm text-blue-600 font-medium hover:underline">
+          {isLogin ? "Buat akun baru" : "Sudah punya akun? Login"}
         </button>
+      </div>
+    </div>
+  );
+
+  if (!token) {
+    return (
+      <div className="max-w-4xl mx-auto p-12 bg-white rounded-xl shadow-lg text-center border border-slate-200">
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">Akses Terkunci</h2>
+        <p className="text-slate-500 mb-6">Autentikasi diperlukan untuk menggunakan sistem deteksi PulmoAI.</p>
+        <button onClick={() => { setIsLogin(true); setShowModal(true); }} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition">
+          Buka Kunci Akses
+        </button>
+        {showModal && <AuthModal />}
       </div>
     );
   }
@@ -104,7 +128,7 @@ export default function UploadCard() {
     <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Analisis AI</h2>
-        <button onClick={handleLogout} className="text-sm text-slate-500 border p-2 rounded">Logout</button>
+        <button onClick={handleLogout} className="text-sm text-slate-500 border p-2 rounded hover:bg-slate-50">Logout</button>
       </div>
       <div className="grid md:grid-cols-2 gap-8">
         <div>
@@ -115,7 +139,8 @@ export default function UploadCard() {
             }
           }} className="mb-4" />
           {preview && <img src={preview} className="w-full rounded-lg mb-4" />}
-          <button onClick={upload} disabled={!file || loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">
+          {uploadError && <p className="text-red-500 text-sm mb-4">{uploadError}</p>}
+          <button onClick={upload} disabled={!file || loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold disabled:opacity-50 hover:bg-blue-700 transition">
             {loading ? "Memproses..." : "Mulai Analisis"}
           </button>
         </div>
