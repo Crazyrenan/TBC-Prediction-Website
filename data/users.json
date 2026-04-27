@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "0144cbbf6dd4e68ec3490b0b",
+    "username": "jonathan",
+    "role": "Clinical Staff",
+    "createdAt": "2026-04-27T18:10:03.889Z",
+    "passwordHash": "dcd8d739c8b4254743d2c124d413d071:f287502e0ad51fc4c795bca73ebdb2e7d5559c9d6bbb4855fceadc99c484bd96"
+  }
+]

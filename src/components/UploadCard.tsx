@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PredictionResult from './PredictionResult';
 
 type User = {
@@ -25,18 +25,16 @@ export default function UploadCard() {
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState('');
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const loadSession = async () => {
-      try {
-        const res = await fetch('/api/auth/session');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        }
-      } finally {
-        setCheckingSession(false);
-      }
-    };
+    const token = localStorage.getItem('auth_token');
+    const savedUser = localStorage.getItem('auth_username');
+    if (token && savedUser) {
+      setUser({ id: '1', username: savedUser, role: 'Staff' });
+    }
+    setCheckingSession(false);
 
     const handleAuthToggle = (event: Event) => {
       const customEvent = event as CustomEvent<{ mode?: AuthMode }>;
@@ -45,9 +43,18 @@ export default function UploadCard() {
       setShowModal(true);
     };
 
-    loadSession();
     window.addEventListener('toggle-auth', handleAuthToggle);
     return () => window.removeEventListener('toggle-auth', handleAuthToggle);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -62,7 +69,8 @@ export default function UploadCard() {
     setAuthLoading(true);
 
     try {
-      const res = await fetch(`/api/auth/${authMode}`, {
+      const endpoint = authMode === 'login' ? 'http://localhost:8000/login' : 'http://localhost:8000/register';
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -71,7 +79,16 @@ export default function UploadCard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Authentication failed.');
 
-      setUser(data.user);
+      if (authMode === 'register') {
+        setAuthMode('login');
+        setAuthError('Registration successful. Please log in.');
+        setAuthLoading(false);
+        return;
+      }
+
+      localStorage.setItem('auth_token', data.access_token);
+      localStorage.setItem('auth_username', data.username);
+      setUser({ id: '1', username: data.username, role: 'Staff' });
       setShowModal(false);
       setUsername('');
       setPassword('');
@@ -82,13 +99,15 @@ export default function UploadCard() {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_username');
     setUser(null);
     setResult(null);
     setFile(null);
     setPreview(null);
     setUploadError('');
+    setIsDropdownOpen(false);
   };
 
   const upload = async () => {
@@ -100,8 +119,12 @@ export default function UploadCard() {
     formData.append('file', file);
 
     try {
+      const token = localStorage.getItem('auth_token');
       const res = await fetch('http://localhost:8000/predict', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
@@ -130,7 +153,7 @@ export default function UploadCard() {
     setUploadError('');
   };
 
-  const AuthModal = () => (
+  const modalContent = showModal ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
@@ -196,13 +219,14 @@ export default function UploadCard() {
               setAuthError('');
             }}
             className="text-sm font-semibold text-cyan-700 hover:text-cyan-900"
+            type="button"
           >
             {authMode === 'login' ? 'Register a new staff account' : 'Use an existing account'}
           </button>
         </div>
       </div>
     </div>
-  );
+  ) : null;
 
   if (checkingSession) {
     return (
@@ -254,7 +278,7 @@ export default function UploadCard() {
             </div>
           </div>
         </div>
-        {showModal && <AuthModal />}
+        {modalContent}
       </div>
     );
   }
@@ -266,15 +290,41 @@ export default function UploadCard() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Radiology Workstation</p>
           <h2 className="mt-1 text-2xl font-semibold text-slate-950">TBC image analysis</h2>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm font-semibold text-slate-900">{user.username}</p>
-            <p className="text-xs text-slate-500">{user.role}</p>
-          </div>
-          <button onClick={handleLogout} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            Logout
+        
+        {/* DROPDOWN USER SECTION */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-3 rounded-md px-3 py-2 transition hover:bg-slate-50 border border-transparent hover:border-slate-200"
+          >
+            <div className="text-right">
+              <p className="text-sm font-semibold text-slate-900">{user.username}</p>
+              <p className="text-xs text-slate-500">{user.role}</p>
+            </div>
+            <svg className={`h-4 w-4 text-slate-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg z-10">
+              <button 
+                onClick={() => console.log('Settings clicked')}
+                className="block w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Settings
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="block w-full border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-rose-600 hover:bg-rose-50"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
+        {/* END DROPDOWN USER SECTION */}
+
       </div>
 
       <div className="grid gap-0 lg:grid-cols-[1fr_400px]">
@@ -321,7 +371,7 @@ export default function UploadCard() {
           )}
         </aside>
       </div>
-      {showModal && <AuthModal />}
+      {modalContent}
     </div>
   );
 }
