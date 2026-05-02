@@ -1,12 +1,16 @@
 import { useState } from 'react';
 
+type SubmitEvent = {
+  preventDefault: () => void;
+};
+
 export default function RegisterForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
-  const handleAuth = async (event: React.FormEvent) => {
+  const handleAuth = async (event: SubmitEvent) => {
     event.preventDefault();
     setAuthError('');
     setAuthLoading(true);

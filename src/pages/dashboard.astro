@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import UploadCard from '../components/UploadCard';
+import { PredictionFlow } from '../components/PredictionFlow';
+import HistoryDashboard from '../components/HistoryDashboard';
 ---
 
 <BaseLayout title="PulmoAI | Dashboard">
@@ -31,8 +32,31 @@ import UploadCard from '../components/UploadCard';
     </div>
   </nav>
 
-  <main class="border-y border-slate-200 bg-slate-100 px-4 py-12">
-    <UploadCard client:only="react" />
+  <main class="min-h-screen border-y border-slate-200 bg-slate-50 px-4 py-12">
+    <div class="mx-auto max-w-5xl flex flex-col gap-12">
+      
+      <!-- Section: New Scan -->
+      <section>
+        <header class="mb-6">
+          <h2 class="text-2xl font-bold text-slate-900">New Scan</h2>
+          <p class="text-slate-500 mt-1">Upload a new X-ray for immediate AI analysis.</p>
+        </header>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <PredictionFlow client:only="react" />
+        </div>
+      </section>
+
+      <!-- Section: Prediction History -->
+      <section>
+        <header class="mb-6">
+          <h2 class="text-2xl font-bold text-slate-900">Prediction History</h2>
+          <p class="text-slate-500 mt-1">Review past diagnostic scans and confidence metrics.</p>
+        </header>
+        
+        <HistoryDashboard client:only="react" />
+      </section>
+
+    </div>
   </main>
 
   <script>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 interface ScanRecord {
-  id: number;
+  id: number | string;
   filename: string;
   prediction: string;
   confidence: number;
@@ -15,28 +15,42 @@ export default function HistoryDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const token = localStorage.getItem('auth_token');
-        if (!token) throw new Error('Unauthenticated');
+  const fetchHistory = async () => {
+    setLoading(true);
+    setError('');
 
-        const res = await fetch('http://localhost:8000/history', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (!res.ok) throw new Error('Failed to fetch history data');
-        
-        const data = await res.json();
-        setRecords(data.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error loading history');
-      } finally {
-        setLoading(false);
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error('Unauthenticated');
+
+      const res = await fetch('http://localhost:8000/history', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch history data');
+
+      const data = await res.json();
+      setRecords(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error loading history');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+
+    const syncAfterPrediction = () => {
+      try {
+        void fetchHistory();
+      } catch {
+        // The visible state is handled by fetchHistory.
       }
     };
 
-    fetchHistory();
+    window.addEventListener('prediction-saved', syncAfterPrediction);
+    return () => window.removeEventListener('prediction-saved', syncAfterPrediction);
   }, []);
 
   if (loading) return <div className="mt-8 p-8 text-center text-sm font-medium text-slate-500">Loading records...</div>;

@@ -1,34 +1,56 @@
-export default function PredictionResult({ data }: { data: any }) {
-  const { prediction, probabilities = [], gradcam_image } = data;
-  const labels = ['Normal', 'Viral', 'TBC'];
+import type { HistoryRecord } from '../types';
+import { ProbabilityBar } from './ProbabilityBar';
+
+interface PredictionResultProps {
+  data: HistoryRecord;
+  onReset?: () => void;
+}
+
+export default function PredictionResult({ data, onReset }: PredictionResultProps) {
+  const imageSource = data.image || data.raw_image_url;
+  const gradcamSource = data.gradcamBase64 || data.gradcam_image_url;
 
   return (
-    <div className="space-y-6">
-      {gradcam_image && (
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Grad-CAM localization</p>
-          <img src={gradcam_image} className="w-full rounded-lg border border-slate-200 shadow-sm" alt="Heatmap" />
+    <div className="grid w-full max-w-4xl grid-cols-1 gap-8 rounded-lg border border-slate-100 bg-white p-8 shadow-sm md:grid-cols-2">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-2xl font-semibold text-slate-900">Analysis Complete</h2>
+        <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+          {imageSource ? (
+            <img src={imageSource} alt="Original X-ray" className="h-full w-full object-contain" />
+          ) : (
+            <p className="px-4 text-center text-sm text-slate-500">Image preview is available in the upload panel.</p>
+          )}
+          {gradcamSource && (
+            <img 
+              src={gradcamSource} 
+              alt="Grad-CAM Overlay" 
+              className="absolute inset-0 h-full w-full object-contain opacity-60 mix-blend-multiply" 
+            />
+          )}
         </div>
-      )}
-
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Detection result</p>
-        <p className="mt-2 text-2xl font-semibold uppercase text-slate-950">{prediction}</p>
       </div>
+      
+      <div className="flex flex-col justify-center gap-6">
+        <div className="rounded-lg border border-cyan-100 bg-cyan-50 p-4">
+          <span className="text-sm font-semibold uppercase tracking-wider text-cyan-700">Primary Finding</span>
+          <p className="text-3xl font-bold text-slate-900 mt-1">{data.prediction}</p>
+        </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Probability</p>
-        {probabilities.map((p: number, i: number) => (
-          <div key={labels[i] || i} className="mb-3 last:mb-0">
-            <div className="mb-1 flex justify-between text-sm">
-              <span className="font-medium text-slate-700">{labels[i] || `Class ${i + 1}`}</span>
-              <span className="font-mono text-slate-600">{(p * 100).toFixed(2)}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-slate-100">
-              <div className="h-2 rounded-full bg-cyan-700" style={{ width: `${Math.max(0, Math.min(100, p * 100))}%` }} />
-            </div>
-          </div>
-        ))}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Confidence Matrix</h3>
+          {data.probabilities.map((prob, idx) => (
+            <ProbabilityBar key={idx} label={`Class ${idx}`} value={prob} />
+          ))}
+        </div>
+
+        {onReset && (
+          <button 
+            onClick={onReset}
+            className="mt-4 rounded-md border border-slate-300 bg-white px-6 py-3 font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900"
+          >
+            New Scan
+          </button>
+        )}
       </div>
     </div>
   );
