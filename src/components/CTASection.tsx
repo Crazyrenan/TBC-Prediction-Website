@@ -9,7 +9,7 @@ export default function CTASection() {
               PulmoAI is an assistive screening interface and does not replace diagnosis by qualified clinical staff.
             </p>
           </div>
-          <a href="#demo" className="rounded-md bg-cyan-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-cyan-800">
+          <a href="/dashboard" className="rounded-md bg-cyan-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-cyan-800">
             Go to workstation
           </a>
         </div>

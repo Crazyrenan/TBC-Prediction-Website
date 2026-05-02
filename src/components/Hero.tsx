@@ -15,15 +15,15 @@ export default function Hero() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="#demo" className="rounded-md bg-cyan-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-cyan-800">
+            <a href="/dashboard" className="rounded-md bg-cyan-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-cyan-800">
               Open workstation
             </a>
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('toggle-auth', { detail: { mode: 'login' } }))}
+            <a
+              href="/login"
               className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-white"
             >
               Staff login
-            </button>
+            </a>
           </div>
         </div>
 

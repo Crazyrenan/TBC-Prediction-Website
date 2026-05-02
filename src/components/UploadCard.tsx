@@ -8,20 +8,12 @@ type User = {
   role: string;
 };
 
-type AuthMode = 'login' | 'register';
 type ViewMode = 'scan' | 'history';
 
 export default function UploadCard() {
   const [user, setUser] = useState<User | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [viewMode, setViewMode] = useState<ViewMode>('scan');
-  
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -35,20 +27,22 @@ export default function UploadCard() {
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     const savedUser = localStorage.getItem('auth_username');
-    if (token && savedUser) {
-      setUser({ id: '1', username: savedUser, role: 'Staff' });
+
+    if (!token || !savedUser) {
+      window.location.href = '/login';
+      return;
     }
+
+    setUser({ id: '1', username: savedUser, role: 'Staff' });
     setCheckingSession(false);
+    window.dispatchEvent(new CustomEvent('auth-state-change'));
 
-    const handleAuthToggle = (event: Event) => {
-      const customEvent = event as CustomEvent<{ mode?: AuthMode }>;
-      setAuthMode(customEvent.detail?.mode === 'register' ? 'register' : 'login');
-      setAuthError('');
-      setShowModal(true);
+    const handleDashboardLogout = () => handleLogout();
+
+    window.addEventListener('dashboard-logout', handleDashboardLogout);
+    return () => {
+      window.removeEventListener('dashboard-logout', handleDashboardLogout);
     };
-
-    window.addEventListener('toggle-auth', handleAuthToggle);
-    return () => window.removeEventListener('toggle-auth', handleAuthToggle);
   }, []);
 
   useEffect(() => {
@@ -67,42 +61,6 @@ export default function UploadCard() {
     };
   }, [preview]);
 
-  const handleAuth = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setAuthError('');
-    setAuthLoading(true);
-
-    try {
-      const endpoint = authMode === 'login' ? 'http://localhost:8000/login' : 'http://localhost:8000/register';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Authentication failed.');
-
-      if (authMode === 'register') {
-        setAuthMode('login');
-        setAuthError('Registration successful. Please log in.');
-        setAuthLoading(false);
-        return;
-      }
-
-      localStorage.setItem('auth_token', data.access_token);
-      localStorage.setItem('auth_username', data.username);
-      setUser({ id: '1', username: data.username, role: 'Staff' });
-      setShowModal(false);
-      setUsername('');
-      setPassword('');
-    } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Authentication failed.');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_username');
@@ -113,6 +71,8 @@ export default function UploadCard() {
     setUploadError('');
     setIsDropdownOpen(false);
     setViewMode('scan');
+    window.dispatchEvent(new CustomEvent('auth-state-change'));
+    window.location.href = '/login';
   };
 
   const upload = async () => {
@@ -158,81 +118,6 @@ export default function UploadCard() {
     setUploadError('');
   };
 
-  const modalContent = showModal ? (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Staff Access</p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-950">
-              {authMode === 'login' ? 'Sign in to PulmoAI' : 'Register staff account'}
-            </h2>
-          </div>
-          <button
-            aria-label="Close"
-            onClick={() => setShowModal(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-          >
-            x
-          </button>
-        </div>
-
-        <form onSubmit={handleAuth} className="space-y-4 px-6 py-5">
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Username</span>
-            <input
-              type="text"
-              autoComplete="username"
-              value={username}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
-              onChange={(event) => setUsername(event.target.value)}
-              required
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Password</span>
-            <input
-              type="password"
-              autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
-              value={password}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </label>
-
-          {authError && (
-            <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
-              {authError}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={authLoading}
-            className="w-full rounded-md bg-cyan-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {authLoading ? 'Checking credentials...' : authMode === 'login' ? 'Sign in' : 'Create account'}
-          </button>
-        </form>
-
-        <div className="border-t border-slate-200 px-6 py-4">
-          <button
-            onClick={() => {
-              setAuthMode(authMode === 'login' ? 'register' : 'login');
-              setAuthError('');
-            }}
-            className="text-sm font-semibold text-cyan-700 hover:text-cyan-900"
-            type="button"
-          >
-            {authMode === 'login' ? 'Register a new staff account' : 'Use an existing account'}
-          </button>
-        </div>
-      </div>
-    </div>
-  ) : null;
-
   if (checkingSession) {
     return (
       <div className="mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
@@ -242,50 +127,7 @@ export default function UploadCard() {
   }
 
   if (!user) {
-    return (
-      <div className="mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[1fr_360px]">
-          <div className="p-8 md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Restricted Module</p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-950">Chest X-ray analysis requires staff login</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-              Access is limited to registered clinical staff. Sign in or create an account to open the analysis
-              workstation and submit X-ray images to the prediction service.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button
-                onClick={() => {
-                  setAuthMode('login');
-                  setShowModal(true);
-                }}
-                className="rounded-md bg-cyan-700 px-5 py-3 text-sm font-semibold text-white hover:bg-cyan-800"
-              >
-                Staff login
-              </button>
-              <button
-                onClick={() => {
-                  setAuthMode('register');
-                  setShowModal(true);
-                }}
-                className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Register account
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-200 bg-slate-50 p-8 lg:border-l lg:border-t-0">
-            <p className="text-sm font-semibold text-slate-900">Access checklist</p>
-            <div className="mt-4 space-y-3 text-sm text-slate-600">
-              <p className="flex justify-between gap-4"><span>Session control</span><span className="font-medium text-emerald-700">Enabled</span></p>
-              <p className="flex justify-between gap-4"><span>Password storage</span><span className="font-medium text-emerald-700">Hashed</span></p>
-              <p className="flex justify-between gap-4"><span>Prediction API</span><span className="font-medium text-amber-700">localhost:8000</span></p>
-            </div>
-          </div>
-        </div>
-        {modalContent}
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -391,7 +233,6 @@ export default function UploadCard() {
       </div>
 
       {viewMode === 'history' && <HistoryDashboard />}
-      {modalContent}
     </>
   );
 }
