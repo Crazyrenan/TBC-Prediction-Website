@@ -1,18 +1,49 @@
 ---
-// src/layouts/BaseLayout.astro
 import '../styles/global.css';
-const { title } = Astro.props;
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'PulmoAI', description = 'AI-based Tuberculosis Detection' } = Astro.props;
 ---
+
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-slate-100 text-slate-900 font-['Inter'] antialiased selection:bg-cyan-100">
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased selection:bg-cyan-100 selection:text-cyan-900">
     <slot />
+
+    <script>
+      const setupObserver = () => {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.remove('opacity-0', 'translate-y-8');
+              entry.target.classList.add('opacity-100', 'translate-y-0');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.scroll-reveal').forEach((el) => {
+          observer.observe(el);
+        });
+      };
+
+      // Jalankan saat halaman pertama kali dimuat
+      setupObserver();
+      
+      // Jalankan kembali jika Anda menggunakan fitur transisi halaman Astro (ViewTransitions)
+      document.addEventListener('astro:page-load', setupObserver);
+    </script>
   </body>
 </html>

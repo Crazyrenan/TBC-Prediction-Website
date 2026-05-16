@@ -1,11 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { PredictionFlow } from '../components/PredictionFlow';
+import { PredictionFlow } from '../components/PredictionFlow';  // ✅ balik ke PredictionFlow
 import HistoryDashboard from '../components/HistoryDashboard';
 ---
 
 <BaseLayout title="PulmoAI | Dashboard">
-  <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+  <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur shadow-sm">
     <div class="mx-auto flex max-w-7xl items-center justify-between">
       <div class="flex items-center gap-2">
         <div class="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-700 shadow-sm">
@@ -16,7 +16,6 @@ import HistoryDashboard from '../components/HistoryDashboard';
           <span class="hidden text-xs font-medium text-slate-500 sm:block">Internal Hospital System</span>
         </div>
       </div>
-
       <div class="flex items-center gap-3">
         <a href="/" class="rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-950">
           Back to Home
@@ -32,27 +31,24 @@ import HistoryDashboard from '../components/HistoryDashboard';
     </div>
   </nav>
 
-  <main class="min-h-screen border-y border-slate-200 bg-slate-50 px-4 py-12">
+  <main class="min-h-screen border-y border-slate-200 bg-slate-50 px-4 py-12 overflow-x-hidden">
     <div class="mx-auto max-w-5xl flex flex-col gap-12">
-      
-      <!-- Section: New Scan -->
-      <section>
+
+      <section class="scroll-reveal opacity-0 translate-y-8 transition-all duration-700 ease-out">
         <header class="mb-6">
           <h2 class="text-2xl font-bold text-slate-900">New Scan</h2>
           <p class="text-slate-500 mt-1">Upload a new X-ray for immediate AI analysis.</p>
         </header>
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <PredictionFlow client:only="react" />
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <PredictionFlow client:only="react" />  <!-- ✅ bukan UploadCard -->
         </div>
       </section>
 
-      <!-- Section: Prediction History -->
-      <section>
+      <section class="scroll-reveal opacity-0 translate-y-8 transition-all duration-700 ease-out delay-150">
         <header class="mb-6">
           <h2 class="text-2xl font-bold text-slate-900">Prediction History</h2>
           <p class="text-slate-500 mt-1">Review past diagnostic scans and confidence metrics.</p>
         </header>
-        
         <HistoryDashboard client:only="react" />
       </section>
 
@@ -60,6 +56,23 @@ import HistoryDashboard from '../components/HistoryDashboard';
   </main>
 
   <script>
+    // ✅ Scroll reveal animation
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.remove('opacity-0', 'translate-y-8');
+            entry.target.classList.add('opacity-100', 'translate-y-0');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.scroll-reveal').forEach((el) => observer.observe(el));
+
+    // Auth / logout
     const logoutButton = document.getElementById('dashboard-logout');
 
     const syncLogoutButton = () => {
@@ -71,10 +84,9 @@ import HistoryDashboard from '../components/HistoryDashboard';
 
     logoutButton?.addEventListener('click', async () => {
       try {
-        // 1. Panggil endpoint logout untuk menghapus cookie di sisi server
         await fetch('/api/auth/logout', { method: 'POST' });
       } catch (error) {
-        console.error("Gagal logout dari server", error);
+        console.error("Gagal logout", error);
       } finally {
         localStorage.removeItem('auth_token');
         window.dispatchEvent(new Event('auth-state-change'));
