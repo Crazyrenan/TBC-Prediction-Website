@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { predictImage, fileToBase64 } from '../lib/api';
+import { predictImage } from '../lib/api';
 import { useHistory } from './useHistory';
 import type { PredictionState, HistoryRecord } from '../types';
 
@@ -12,21 +12,19 @@ export const usePrediction = () => {
   const handlePredict = async (file: File) => {
     try {
       setState('uploading');
-      const base64Image = await fileToBase64(file);
-      
       setState('processing');
       const apiResult = await predictImage(file);
-      
+
+      // ✅ Data comes from backend now, no need to build record locally
       const record: HistoryRecord = {
-        id: crypto.randomUUID(),
-        image: base64Image,
+        id: String(apiResult.scan_id),
+        image: apiResult.gradcamBase64 ?? '',
         date: Date.now(),
-        ...apiResult
+        ...apiResult,
       };
 
       setResult(record);
-      saveRecord(record);
-      window.dispatchEvent(new CustomEvent('prediction-saved'));
+      saveRecord(); // ✅ no argument — just triggers a backend refresh
       setState('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

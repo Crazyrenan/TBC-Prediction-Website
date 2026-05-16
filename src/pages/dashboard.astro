@@ -69,8 +69,17 @@ import HistoryDashboard from '../components/HistoryDashboard';
     syncLogoutButton();
     window.addEventListener('auth-state-change', syncLogoutButton);
 
-    logoutButton?.addEventListener('click', () => {
-      window.dispatchEvent(new CustomEvent('dashboard-logout'));
+    logoutButton?.addEventListener('click', async () => {
+      try {
+        // 1. Panggil endpoint logout untuk menghapus cookie di sisi server
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (error) {
+        console.error("Gagal logout dari server", error);
+      } finally {
+        localStorage.removeItem('auth_token');
+        window.dispatchEvent(new Event('auth-state-change'));
+        window.location.href = '/';
+      }
     });
   </script>
 </BaseLayout>
