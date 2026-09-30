@@ -6,7 +6,7 @@ export interface PredictionResponse {
   probabilities: number[];
   gradcamBase64?: string;
   gradcam_image_url?: string;
-  scan_id?: number;          // ✅ tambah ini
+  scan_id?: number;        
 }
 
 export interface HistoryRecord extends PredictionResponse {

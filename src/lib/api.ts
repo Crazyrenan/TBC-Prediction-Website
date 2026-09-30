@@ -14,14 +14,12 @@ export const predictImage = async (file: File): Promise<PredictionResponse> => {
   });
 
   if (!response.ok) {
-    // ✅ Read the actual error from FastAPI instead of a generic message
     const errorBody = await response.json().catch(() => null);
     throw new Error(errorBody?.detail ?? `Request failed (${response.status})`);
   }
 
   const data = await response.json();
 
-  // ✅ Remap backend's `gradcam_image` → frontend's `gradcamBase64`
   return {
     ...data,
     gradcamBase64: data.gradcam_image ?? undefined,
